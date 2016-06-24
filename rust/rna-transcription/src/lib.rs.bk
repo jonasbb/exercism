@@ -1,0 +1,22 @@
+#[derive(PartialEq,Eq)]
+struct DeoxyribonucleicAcid (String);
+
+impl DeoxyribonucleicAcid {
+    fn new(strand: &str) -> DeoxyribonucleicAcid{
+        DeoxyribonucleicAcid(strand.to_string())
+    }
+
+    fn to_rna(&self) -> RibonucleicAcid {
+        RibonucleicAcid::new(&self.0.chars().map(|x| match x {'G' => 'C', 'C' => 'G', 'T' => 'A', 'A' => 'U'}).collect::<String>())
+    }
+}
+
+#[derive(PartialEq,Eq)]
+struct RibonucleicAcid (String);
+
+impl RibonucleicAcid {
+    fn new(strand: &str) -> RibonucleicAcid{
+        RibonucleicAcid(strand.to_string())
+    }
+}
+
