@@ -12,7 +12,7 @@ pub fn tally(input: &Path, output: &Path) -> Result<usize, std::io::Error> {
     let file = try!{File::open(&input)};
     let file = BufReader::new(file);
 
-    // stores Name => (MP, W, D, L, P)
+    // stores Name => (W, D, L)
     let mut game_state = HashMap::new();
     let mut lines = 0;
 
@@ -27,23 +27,8 @@ pub fn tally(input: &Path, output: &Path) -> Result<usize, std::io::Error> {
         }
         match tmp[2] {
             "draw" => {
-                let t0 = tmp[0].to_string();
-                let t1 = tmp[1].to_string();
-                {
-                    let mut team1 = game_state.entry(t0.to_string())
-                        .or_insert((0, 0, 0, 0, 0));
-                    (*team1).0 += 1;
-                    (*team1).2 += 1;
-                    (*team1).4 += 1;
-                }
-                {
-                    let mut team2 = game_state.entry(t1.to_string())
-                        .or_insert((0, 0, 0, 0, 0));
-                    (*team2).0 += 1;
-                    (*team2).2 += 1;
-                    (*team2).4 += 1;
-                }
-
+                (*game_state.entry(tmp[0].to_string()).or_insert((0, 0, 0))).1 += 1;
+                (*game_state.entry(tmp[1].to_string()).or_insert((0, 0, 0))).1 += 1;
             }
             "win" | "loss" => {
                 // just swtich team order
@@ -52,40 +37,29 @@ pub fn tally(input: &Path, output: &Path) -> Result<usize, std::io::Error> {
                 } else {
                     (tmp[1].to_string(), tmp[0].to_string())
                 };
-
-                {
-                    let mut team1 = game_state.entry(t0.to_string())
-                        .or_insert((0, 0, 0, 0, 0));
-                    (*team1).0 += 1;
-                    (*team1).1 += 1;
-                    (*team1).4 += 3;
-                }
-                {
-                    let mut team2 = game_state.entry(t1.to_string())
-                        .or_insert((0, 0, 0, 0, 0));
-                    (*team2).0 += 1;
-                    (*team2).3 += 1;
-                }
+                (*game_state.entry(t0.to_string()).or_insert((0, 0, 0))).0 += 1;
+                (*game_state.entry(t1.to_string()).or_insert((0, 0, 0))).2 += 1;
             }
             _ => {
                 // ignore input line
                 continue;
             }
         }
+        // count number of valid lines
         lines += 1;
     }
 
     let mut game_state: Vec<_> =
-        game_state.into_iter().map(|(team, (mp, w, d, l, p))| (team, mp, w, d, l, p)).collect();
+        game_state.into_iter().map(|(team, (w, d, l))| (team, w, d, l)).collect();
     // convert to negative, because highest value should be sorted first
-    game_state.sort_by_key(|&(ref team, _, w, _, _, p)| (-p, -w, team.to_string()));
+    game_state.sort_by_key(|&(ref team, w, d, _)| (-(3 * w + d), -w, team.to_string()));
 
 
     let file = try!{OpenOptions::new().write(true).open(&output)};
     let mut file = BufWriter::new(file);
     try!{writeln!(file, "{:<30} | {:>2} | {:>2} | {:>2} | {:>2} | {:>2}", "Team", "MP", "W", "D", "L", "P")};
-    for (team, mp, w, d, l, p) in game_state {
-        try!{writeln!(file, "{:<30} | {:>2} | {:>2} | {:>2} | {:>2} | {:>2}", team, mp, w, d, l, p)};
+    for (team, w, d, l) in game_state {
+        try!{writeln!(file, "{:<30} | {:>2} | {:>2} | {:>2} | {:>2} | {:>2}", team, w+d+l, w, d, l, 3*w+d)};
     }
     try!{file.flush()};
     Ok(lines)
