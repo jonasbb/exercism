@@ -1,34 +1,28 @@
 use std::collections::HashMap;
 use std::sync::Arc;
-use std::sync::mpsc::sync_channel;
+use std::sync::mpsc::channel;
 use std::thread;
 
-#[derive(PartialEq,Eq)]
-pub struct ParallelFrequency(HashMap<char, u32>);
+pub type Counter = HashMap<char, usize>;
 
-pub fn frequency(data: &[&str], worker: usize) -> HashMap<char, u32> {
+pub fn frequency(data: &[&str], worker: usize) -> Counter {
     // need to create a copy of the data so that all threads have access
     // already prepare for case insensitivity
     let data = Arc::new(data.into_iter().map(|x| x.to_lowercase()).collect::<Vec<String>>());
 
+    // setup communication channels
+    let (child_tx, main_rx) = channel();
     let mut children = Vec::with_capacity(worker);
     for workernumber in 0..worker {
-        // setup communication channels
-        let (child_tx, main_rx) = sync_channel(0);
         let data = data.clone();
+        let child_tx = child_tx.clone();
 
         let child = thread::spawn(move || {
             // setup counter
             let mut res = HashMap::new();
-
             for i in 0..data.len() {
                 if i % worker == workernumber {
-                    // only alphabetical character
-                    for c in data[i].chars().filter(|c| c.is_alphabetic()) {
-                        // increase count
-                        let mut count = res.entry(c).or_insert(0);
-                        *count += 1;
-                    }
+                    freq(&mut res, &data[i]);
                 }
             }
 
@@ -37,18 +31,32 @@ pub fn frequency(data: &[&str], worker: usize) -> HashMap<char, u32> {
             child_tx.send(res).unwrap();
         });
 
-        children.push((child, main_rx));
+        children.push(child);
     }
 
     let mut res = HashMap::new();
-    // synchronize
+    // get data
+    for _ in 0..worker {
+        let tmp = main_rx.recv().unwrap();
+        merge(&mut res, &tmp);
+    }
+    // synchronize threads
     for child in children {
-        let tmp = child.1.recv().unwrap();
-        for (c, ccount) in tmp {
-            let mut count = res.entry(c).or_insert(0);
-            *count += ccount;
-        }
-        child.0.join().unwrap();
+        child.join().unwrap();
     }
     res
+}
+
+fn freq(counter: &mut Counter, data: &str) {
+    for c in data.chars().filter(|c| c.is_alphabetic()) {
+        let mut count = counter.entry(c).or_insert(0);
+        *count += 1;
+    }
+}
+
+fn merge(c1: &mut Counter, c2: &Counter) {
+    for (&key, &value) in c2 {
+        let mut count = c1.entry(key).or_insert(0);
+        *count += value;
+    }
 }
