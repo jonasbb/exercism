@@ -5,22 +5,9 @@ pub fn hex_to_int(hex: &str) -> Option<u64> {
     for x in hex.chars() {
         res *= 16;
         res += match x {
-            '0' => 0,
-            '1' => 1,
-            '2' => 2,
-            '3' => 3,
-            '4' => 4,
-            '5' => 5,
-            '6' => 6,
-            '7' => 7,
-            '8' => 8,
-            '9' => 9,
-            'a' => 10,
-            'b' => 11,
-            'c' => 12,
-            'd' => 13,
-            'e' => 14,
-            'f' => 15,
+            '0'...'9' => (x as u8 - b'0') as u64,
+            'A'...'F' => (x as u8 - b'A' + 10u8) as u64,
+            'a'...'f' => (x as u8 - b'a' + 10u8) as u64,
 
             // error in decoding
             _ => return None,
