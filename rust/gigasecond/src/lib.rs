@@ -2,5 +2,5 @@ extern crate chrono;
 use chrono::*;
 
 pub fn after(start_date: DateTime<UTC>) -> DateTime<UTC> {
-    start_date.checked_add(Duration::seconds(1000000000)).unwrap()
+    start_date.checked_add(Duration::seconds(1_000_000_000)).unwrap()
 }
