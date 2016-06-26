@@ -12,9 +12,14 @@ pub struct Forth {
     definitions: HashMap<String, Rc<Vec<Token>>>,
 }
 
+/// List of tokens which can occur in a Forth program.
 #[derive(Debug,PartialEq,Eq,Clone)]
 enum Token {
     Number(Value),
+    /// Represents anything that is not a number or one of the punctuation symbols. Even the
+    /// predefined word like `dup` or `swap` are converted into an Identifier while tokenizing a
+    /// string. These predefined word have an already existing entry to the special tokens `Dup`,
+    /// `Drop`, `Over`, `Swap` which actually do work.
     Identifier(String),
 
     Plus,
@@ -24,6 +29,7 @@ enum Token {
     Colon,
     Semicolon,
 
+    // special tokens, represent the predefined behaviour of the corresponding Identifiers
     Dup,
     Drop,
     Over,
@@ -36,6 +42,7 @@ pub enum Error {
     StackUnderflow,
     UnknownWord,
     InvalidWord,
+    /// New error condition for `;` which occur without a `:` first
     EndOfDefinitionWithoutStart,
 }
 
@@ -53,6 +60,7 @@ impl Forth {
         }
     }
 
+    /// Prints all numbers on the stack with ` ` as separation character
     pub fn format_stack(&self) -> String {
         let mut res = String::new();
         for val in self.stack.as_slice().iter() {
@@ -69,12 +77,8 @@ impl Forth {
         res
     }
 
-    pub fn eval(&mut self, input: &str) -> ForthResult {
-        let tokenizer = ForthTokenizer::new(input);
-        try!{self.eval_vec(&tokenizer.collect())};
-        Ok(())
-    }
-
+    /// Looks up the stored definition of token for the word `word`.
+    /// Returns `Error::UnknownWord` if the word is not in the internal hashmap.
     fn get_word_definition(&self, word: &String) -> Result<Rc<Vec<Token>>, Error> {
         if let Some(x) = self.definitions.get(word) {
             Ok(x.clone())
@@ -83,6 +87,16 @@ impl Forth {
         }
     }
 
+    /// Evaluate a string as Forth program. It may be called multiple times. The previous state
+    /// will be reused.
+    pub fn eval(&mut self, input: &str) -> ForthResult {
+        let tokenizer = ForthTokenizer::new(input);
+        try!{self.eval_vec(&tokenizer.collect())};
+        Ok(())
+    }
+
+    /// Abstraction method to process both token streams from str input and stored commands in the
+    /// hashmap.
     fn eval_vec(&mut self, input: &Vec<Token>) -> ForthResult {
         let mut tokenstream = input.as_slice().iter();
         loop {
@@ -122,7 +136,11 @@ impl Forth {
                                         Some(&Identifier(ref subiden)) => {
                                             // compiler mode:
                                             // copy definition of used word into new word
-                                            new_word_commands.append(&mut try!{self.get_word_definition(subiden)}.as_ref().clone())
+                                            new_word_commands.append(&mut try!{
+                                                    self.get_word_definition(subiden)
+                                                }
+                                                .as_ref()
+                                                .clone())
                                         }
                                         Some(token) => new_word_commands.push(token.clone()),
                                     }
@@ -209,6 +227,7 @@ fn redefine_in_loop() {
     assert_eq!("1 1", f.format_stack());
 }
 
+/// Helper tool to convert a string into a list of Forth tokens.
 struct ForthTokenizer<'a> {
     data: &'a str,
     buf: String,
@@ -237,6 +256,7 @@ impl<'a> Iterator for ForthTokenizer<'a> {
         let mut chars = self.data.chars();
         // need to write the for loop on my own, otherwise the iterator would be moved
         // and I cannot restore the &str value below
+        // Consume everything separated by control or whitespace as a single token
         loop {
             match chars.next() {
                 Some(c) => {
