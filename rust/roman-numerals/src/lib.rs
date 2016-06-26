@@ -4,12 +4,11 @@ impl Roman {
     pub fn to_string(&self) -> String {
         let mut res = String::new();
         // the vector defines which letters to use for which position
-        for (factor, oneer, fiveer, tener) in vec![(1000, 'M', '-', '-'),
-                                                   (100, 'C', 'D', 'M'),
-                                                   (10, 'X', 'L', 'C'),
-                                                   (1, 'I', 'V', 'X')] {
+        for &(factor, oneer, fiveer, tener) in &[(1000, 'M', '-', '-'),
+                                                 (100, 'C', 'D', 'M'),
+                                                 (10, 'X', 'L', 'C'),
+                                                 (1, 'I', 'V', 'X')] {
             match (self.0 / factor) % 10 {
-                0 => {}
                 1 => res.push(oneer),
                 2 => {
                     res.push(oneer);
@@ -44,7 +43,7 @@ impl Roman {
                     res.push(oneer);
                     res.push(tener)
                 }
-                _ => {}
+                0 | _ => {}
             }
         }
         res

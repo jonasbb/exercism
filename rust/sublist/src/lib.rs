@@ -18,7 +18,7 @@ pub fn sublist<T: PartialEq>(a: &[T], b: &[T]) -> Comparison {
 fn sublist_of<T: PartialEq>(a: &[T], b: &[T]) -> bool {
     if a.len() > b.len() {
         // a larger list can nerver be a sublist
-        return false;
+        false
     } else {
         // for all possible ways to missalign the list, test for sublist
         for shift in 0..(b.len() - a.len()) + 1 {
@@ -28,6 +28,6 @@ fn sublist_of<T: PartialEq>(a: &[T], b: &[T]) -> bool {
             }
         }
         // no match found
-        return false;
+        false
     }
 }

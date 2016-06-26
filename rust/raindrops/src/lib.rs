@@ -11,7 +11,7 @@ pub fn raindrops(num: u64) -> String {
     };
 
     // not divisible by anything above
-    if res.len() == 0 {
+    if res.is_empty() {
         res.push_str(&num.to_string())
     };
     res

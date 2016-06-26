@@ -5,12 +5,12 @@ pub enum Error {
     SentenceStart,
     EndOfSentence,
     UnknownWord,
-    ParseIntError(ParseIntError),
+    ParseInt(ParseIntError),
 }
 
 impl From<ParseIntError> for Error {
     fn from(e: ParseIntError) -> Self {
-        Error::ParseIntError(e)
+        Error::ParseInt(e)
     }
 }
 
@@ -36,29 +36,41 @@ impl WordProblem {
         loop {
             match witer.next() {
                 Some("plus") => {
-                    let num =
-                        try!{ i64::from_str_radix(try!{witer.next().ok_or(Error::EndOfSentence)}, 10 )};
+                    let num = try!{
+                            i64::from_str_radix(try!{
+                                witer.next().ok_or(Error::EndOfSentence)
+                            }, 10 )
+                        };
                     state += num;
                 }
                 Some("minus") => {
-                    let num =
-                        try!{ i64::from_str_radix(try!{witer.next().ok_or(Error::EndOfSentence)}, 10 )};
+                    let num = try!{
+                            i64::from_str_radix(try!{
+                                witer.next().ok_or(Error::EndOfSentence)
+                            }, 10 )
+                        };
                     state -= num;
                 }
                 Some("multiplied") => {
                     // consume by token
                     witer.next();
 
-                    let num =
-                        try!{ i64::from_str_radix(try!{witer.next().ok_or(Error::EndOfSentence)}, 10 )};
+                    let num = try!{
+                            i64::from_str_radix(try!{
+                                witer.next().ok_or(Error::EndOfSentence)
+                            }, 10 )
+                        };
                     state *= num;
                 }
                 Some("divided") => {
                     // consume by token
                     witer.next();
 
-                    let num =
-                        try!{ i64::from_str_radix(try!{witer.next().ok_or(Error::EndOfSentence)}, 10 )};
+                    let num = try!{
+                            i64::from_str_radix(try!{
+                                witer.next().ok_or(Error::EndOfSentence)
+                            }, 10 )
+                        };
                     state /= num;
                 }
                 Some("") => {} // ignore empty entries

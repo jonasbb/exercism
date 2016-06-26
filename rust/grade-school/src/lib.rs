@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+#[derive(Default)]
 pub struct School(HashMap<u8, Vec<String>>);
 
 impl School {
@@ -10,7 +11,7 @@ impl School {
     /// Vector of all distinct grades in ascending order
     pub fn grades(&self) -> Vec<u8> {
         // map to convert & to value
-        let mut ret: Vec<u8> = self.0.keys().map(|x| *x).collect();
+        let mut ret: Vec<u8> = self.0.keys().cloned().collect();
         // must be in order
         ret.sort();
         ret
@@ -23,7 +24,7 @@ impl School {
 
     /// Add name and grade combination to School
     pub fn add(&mut self, grade: u8, name: &str) {
-        let val = self.0.entry(grade).or_insert(Vec::new());
+        let val = self.0.entry(grade).or_insert_with(Vec::new);
         val.push(name.to_string());
         // store values in order, insertion sort would be more efficient
         val.sort()

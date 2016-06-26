@@ -1,6 +1,9 @@
+#![allow(unknown_lints)]
+
 pub type BufferResult<T> = Result<T, Error>;
 
 #[derive(Debug,PartialEq,Eq)]
+#[allow(enum_variant_names)]
 pub enum Error {
     EmptyBuffer,
     FullBuffer,
@@ -43,7 +46,7 @@ impl<T> CircularBuffer<T> {
         }
         let tmp = self.data[self.readptr].take().unwrap();
         self.readptr = (self.readptr + 1) % self.size;
-        return Ok(tmp);
+        Ok(tmp)
     }
 
     pub fn write(&mut self, item: T) -> BufferResult<()> {

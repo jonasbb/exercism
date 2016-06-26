@@ -1,3 +1,5 @@
+#![allow(unknown_lints)]
+
 ///
 /// # Idea
 ///
@@ -7,9 +9,8 @@
 /// If found: check that corners are `+` and horizontal lines are `-` or `+` and that vertical
 /// lines are `|` or `+`.
 ///
-
-
-pub fn count(lines: &Vec<&'static str>) -> usize {
+#[allow(needless_range_loop)]
+pub fn count(lines: &[&'static str]) -> usize {
     // convert to Vec<Vec<char>> for easier access
     let data = lines.into_iter().map(|l| l.chars().collect::<Vec<char>>()).collect::<Vec<_>>();
     let sizex = data.len();
@@ -38,7 +39,7 @@ pub fn count(lines: &Vec<&'static str>) -> usize {
                 return false;
             }
         }
-        return true;
+        true
     };
 
     let mut count_rectangles = 0;

@@ -6,14 +6,14 @@ pub fn parse(data: Vec<(&'static str, &'static str)>) -> Mapping {
 
 impl Mapping {
     pub fn name_for(&self, short: &str) -> Result<&'static str, ()> {
-        for &(x, y) in self.0.iter() {
+        for &(x, y) in &self.0 {
             // assert that both iterators in the zip have the same length
             if short.chars().count() != x.chars().count() {
                 continue;
             }
 
             // compare character for character
-            if short.chars().zip(x.chars()).all(|(a, b)| {
+            let matches = short.chars().zip(x.chars()).all(|(a, b)| {
                 match a {
                     // matches identity
                     'A' | 'C' | 'G' | 'T' => a == b,
@@ -37,7 +37,8 @@ impl Mapping {
                     // unknown char matches nothing
                     _ => false,
                 }
-            }) {
+            });
+            if matches {
                 return Ok(y);
             }
         }

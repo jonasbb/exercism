@@ -15,10 +15,9 @@ pub fn frequency(data: &[&'static str], worker: usize) -> Counter {
         let child = thread::spawn(move || {
             // setup counter
             let mut res = HashMap::new();
-            for i in 0..data.len() {
-                if i % worker == workernumber {
-                    freq(&mut res, &data[i]);
-                }
+
+            for (_, d) in data.iter().enumerate().filter(|&(i, _)| i % worker == workernumber) {
+                freq(&mut res, d);
             }
             res
         });
@@ -29,7 +28,7 @@ pub fn frequency(data: &[&'static str], worker: usize) -> Counter {
     let mut res = HashMap::new();
     // synchronize threads
     for child in children {
-        let tmp = child.join().ok().expect("Could not join a thread!");
+        let tmp = child.join().expect("Could not join a thread!");
         merge(&mut res, &tmp);
     }
     res

@@ -1,5 +1,8 @@
+#![allow(unknown_lints)]
+
 use std::iter::FromIterator;
 
+#[allow(needless_range_loop)]
 pub fn primes_up_to(limit: usize) -> Vec<usize> {
     // 0 represents non prime numbers
     // non 0 values are prime

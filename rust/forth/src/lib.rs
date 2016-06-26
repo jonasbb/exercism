@@ -5,6 +5,7 @@ use Token::*;
 pub type Value = i32;
 pub type ForthResult = Result<(), Error>;
 
+#[derive(Default)]
 pub struct Forth {
     stack: Vec<Value>,
     /// Stores the definitions of each word
@@ -68,7 +69,7 @@ impl Forth {
             res.push(' ');
         }
         // remove trailing ' ' if at least 1 char
-        let l = if res.len() == 0 {
+        let l = if res.is_empty() {
             0
         } else {
             res.len() - 1
@@ -79,7 +80,7 @@ impl Forth {
 
     /// Looks up the stored definition of token for the word `word`.
     /// Returns `Error::UnknownWord` if the word is not in the internal hashmap.
-    fn get_word_definition(&self, word: &String) -> Result<Rc<Vec<Token>>, Error> {
+    fn get_word_definition(&self, word: &str) -> Result<Rc<Vec<Token>>, Error> {
         if let Some(x) = self.definitions.get(word) {
             Ok(x.clone())
         } else {
@@ -91,32 +92,32 @@ impl Forth {
     /// will be reused.
     pub fn eval(&mut self, input: &str) -> ForthResult {
         let tokenizer = ForthTokenizer::new(input);
-        try!{self.eval_vec(&tokenizer.collect())};
+        try!{self.eval_vec(&tokenizer.collect::<Vec<_>>())};
         Ok(())
     }
 
     /// Abstraction method to process both token streams from str input and stored commands in the
     /// hashmap.
-    fn eval_vec(&mut self, input: &Vec<Token>) -> ForthResult {
-        let mut tokenstream = input.as_slice().iter();
+    fn eval_vec(&mut self, input: &[Token]) -> ForthResult {
+        let mut tokenstream = input.iter();
         loop {
             match tokenstream.next() {
                 None => break,
                 Some(token) => {
-                    match token {
-                        &Number(n) => self.stack.push(n),
+                    match *token {
+                        Number(n) => self.stack.push(n),
 
                         // arbitrary identifiers
-                        &Identifier(ref iden) => {
+                        Identifier(ref iden) => {
                             let tmp = try!{self.get_word_definition(iden)};
                             try!{self.eval_vec(tmp.as_ref())}
                         }
 
-                        &Semicolon => {
+                        Semicolon => {
                             // may only occur after colon
                             return Err(Error::EndOfDefinitionWithoutStart);
                         }
-                        &Colon => {
+                        Colon => {
                             let mut new_word_commands = Vec::new();
 
                             // must be Identifier
@@ -153,15 +154,15 @@ impl Forth {
                         }
 
                         // Operations with 1 operand
-                        &Dup | &Drop => {
+                        Dup | Drop => {
                             match self.stack.pop() {
                                 Some(v1) => {
-                                    match token {
-                                        &Dup => {
+                                    match *token {
+                                        Dup => {
                                             self.stack.push(v1);
                                             self.stack.push(v1);
                                         }
-                                        &Drop => {}
+                                        Drop => {}
                                         _ => unreachable!(),
                                     }
                                 }
@@ -170,24 +171,24 @@ impl Forth {
                         }
 
                         // Operations with 2 operand
-                        &Plus | &Minus | &Star | &Slash | &Over | &Swap => {
+                        Plus | Minus | Star | Slash | Over | Swap => {
                             match (self.stack.pop(), self.stack.pop()) {
                                 (Some(v1), Some(v2)) => {
-                                    match token {
-                                        &Plus => self.stack.push(v2 + v1),
-                                        &Minus => self.stack.push(v2 - v1),
-                                        &Star => self.stack.push(v2 * v1),
-                                        &Slash => {
+                                    match *token {
+                                        Plus => self.stack.push(v2 + v1),
+                                        Minus => self.stack.push(v2 - v1),
+                                        Star => self.stack.push(v2 * v1),
+                                        Slash => {
                                             if v1 == 0 {
                                                 return Err(Error::DivisionByZero);
                                             }
                                             self.stack.push(v2 / v1)
                                         }
-                                        &Swap => {
+                                        Swap => {
                                             self.stack.push(v1);
                                             self.stack.push(v2);
                                         }
-                                        &Over => {
+                                        Over => {
                                             self.stack.push(v2);
                                             self.stack.push(v1);
                                             self.stack.push(v2);
@@ -257,20 +258,15 @@ impl<'a> Iterator for ForthTokenizer<'a> {
         // need to write the for loop on my own, otherwise the iterator would be moved
         // and I cannot restore the &str value below
         // Consume everything separated by control or whitespace as a single token
-        loop {
-            match chars.next() {
-                Some(c) => {
-                    // not totally sure this is the correct filter, but seems to pass all the tests
-                    if c.is_control() || c.is_whitespace() {
-                        // exit if at least one token read
-                        if self.buf.len() > 0 {
-                            break;
-                        }
-                    } else {
-                        self.buf.push(c);
-                    }
+        while let Some(c) = chars.next() {
+            // not totally sure this is the correct filter, but seems to pass all the tests
+            if c.is_control() || c.is_whitespace() {
+                // exit if at least one token read
+                if !self.buf.is_empty() {
+                    break;
                 }
-                None => break,
+            } else {
+                self.buf.push(c);
             }
         }
         // save rest of string slice back
@@ -295,7 +291,7 @@ impl<'a> Iterator for ForthTokenizer<'a> {
                 // try to parse it as a number, otherwise it is an identifier
                 match x.parse::<Value>() {
                     Ok(v) => Some(Number(v)),
-                    Err(_) => Some(Identifier(format!("{}", x.to_lowercase()))),
+                    Err(_) => Some(Identifier(x.to_lowercase())),
                 }
             }
         }

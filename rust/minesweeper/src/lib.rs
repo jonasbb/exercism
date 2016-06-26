@@ -1,4 +1,4 @@
-pub fn annotate(input: &Vec<&str>) -> Vec<String> {
+pub fn annotate(input: &[&str]) -> Vec<String> {
     let data: Vec<Vec<bool>> =
         input.into_iter().map(|s| s.chars().map(|c| c == '*').collect()).collect();
     let sizex = data.len() as isize;
@@ -35,16 +35,15 @@ pub fn annotate(input: &Vec<&str>) -> Vec<String> {
         let mut tmp = String::with_capacity(sizey as usize);
 
         for y in 0..sizey {
-            match is_mine(x, y) {
-                true => tmp.push('*'),
-                false => {
-                    tmp.push_str(&match offs.into_iter()
-                        .filter(|&&(a, b)| is_mine(x + a, y + b))
-                        .count() {
-                        0 => " ".to_string(),
-                        x => format!("{}", x),
-                    })
-                }
+            if is_mine(x, y) {
+                tmp.push('*')
+            } else {
+                tmp.push_str(&match offs.into_iter()
+                    .filter(|&&(a, b)| is_mine(x + a, y + b))
+                    .count() {
+                    0 => " ".to_string(),
+                    x => format!("{}", x),
+                })
             }
         }
 

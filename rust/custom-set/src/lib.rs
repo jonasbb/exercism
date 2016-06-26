@@ -27,11 +27,11 @@ impl<T: PartialEq + Clone> CustomSet<T> {
     }
 
     pub fn difference(&self, other: &Self) -> Self {
-        CustomSet::new(self.0.iter().filter(|x| !other.contains(x)).map(|x| x.clone()).collect())
+        CustomSet::new(self.0.iter().filter(|x| !other.contains(x)).cloned().collect())
     }
 
     pub fn intersection(&self, other: &Self) -> Self {
-        CustomSet::new(self.0.iter().filter(|x| other.contains(x)).map(|x| x.clone()).collect())
+        CustomSet::new(self.0.iter().filter(|x| other.contains(x)).cloned().collect())
     }
 
     pub fn union(&self, other: &Self) -> Self {

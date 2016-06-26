@@ -6,7 +6,7 @@ pub fn pretty_print(value: &str) -> String {
 }
 
 pub fn area_code(value: &str) -> Option<String> {
-    get_valid_digits(value).map(|(a, _, _)| format!("{}", a))
+    get_valid_digits(value).map(|(a, _, _)| a)
 }
 
 pub fn number(value: &str) -> Option<String> {
@@ -20,9 +20,9 @@ fn get_valid_digits(value: &str) -> Option<(String, String, String)> {
         tmp.remove(0);
     }
     if tmp.len() == 10 {
-        Some((tmp.iter().map(|x| *x).take(3).collect::<String>(),
-              tmp.iter().map(|x| *x).skip(3).take(3).collect::<String>(),
-              tmp.iter().map(|x| *x).skip(6).take(4).collect::<String>()))
+        Some((tmp.iter().take(3).cloned().collect::<String>(),
+              tmp.iter().skip(3).take(3).cloned().collect::<String>(),
+              tmp.iter().skip(6).take(4).cloned().collect::<String>()))
     } else {
         None
     }

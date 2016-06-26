@@ -1,10 +1,10 @@
 // https://courses.cs.washington.edu/courses/cse143/11wi/lectures/02-16/18-recursive-backtracking-2.ppt
 pub type Domino = (usize, usize);
 
-pub fn chain(dominos: &Vec<Domino>) -> Option<Vec<Domino>> {
+pub fn chain(dominos: &[Domino]) -> Option<Vec<Domino>> {
     // test all possible chain start/end combinations
     for x in 1..6 + 1 {
-        if let Some(x) = find_chain(dominos.clone(), x, x, dominos.len()) {
+        if let Some(x) = find_chain(Vec::from(dominos), x, x, dominos.len()) {
             return Some(x);
         }
     }
@@ -19,7 +19,7 @@ fn find_chain(mut dominos: Vec<Domino>,
               -> Option<Vec<Domino>> {
     // a 0-length chain can only match, if start==end, then no more stones are necessary to
     // complete the circle
-    if dominos.len() == 0 {
+    if dominos.is_empty() {
         return if start == end {
             Some(Vec::with_capacity(total_length))
         } else {

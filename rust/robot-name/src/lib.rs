@@ -2,6 +2,7 @@ extern crate rand;
 
 use rand::Rng;
 
+#[derive(Default)]
 pub struct Robot(String);
 
 impl Robot {
@@ -9,7 +10,7 @@ impl Robot {
         Robot(Robot::generate_random_name())
     }
 
-    pub fn name<'a>(&'a self) -> &'a str {
+    pub fn name(&self) -> &str {
         self.0.as_str()
     }
 
