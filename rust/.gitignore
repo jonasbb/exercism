@@ -8,3 +8,5 @@
 
 # rustfmt backup file
 *.bk
+
+.idea/
