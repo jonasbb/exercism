@@ -1,0 +1,6 @@
+[package]
+name = "largest-series-product"
+version = "0.0.0"
+
+[dependencies]
+error-chain = "0.7"
