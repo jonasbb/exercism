@@ -32,6 +32,7 @@ pub fn is_valid(digits_: &str) -> bool {
     }
 
     let sum: usize = digits
+        .rev()
         .enumerate()
         .map(|(i, c)| if i % 2 == 1 {
             double_and_wrap(char2digit(c))
@@ -43,44 +44,8 @@ pub fn is_valid(digits_: &str) -> bool {
     sum % 10 == 0
 }
 
-impl<'a> From<&'a str> for Luhn {
-    fn from(s: &'a str) -> Luhn {
-        Luhn::new(is_valid(s))
-    }
-}
-
-impl From<String> for Luhn {
-    fn from(s: String) -> Luhn {
-        Luhn::from(s.as_ref())
-    }
-}
-
-impl From<u8> for Luhn {
-    fn from(i: u8) -> Luhn {
-        Luhn::from(format!("{:03}", i))
-    }
-}
-
-impl From<u16> for Luhn {
-    fn from(i: u16) -> Luhn {
-        Luhn::from(format!("{:05}", i))
-    }
-}
-
-impl From<u32> for Luhn {
-    fn from(i: u32) -> Luhn {
-        Luhn::from(format!("{:09}", i))
-    }
-}
-
-impl From<u64> for Luhn {
-    fn from(i: u64) -> Luhn {
-        Luhn::from(format!("{:016}", i))
-    }
-}
-
-impl From<usize> for Luhn {
-    fn from(i: usize) -> Luhn {
-        Luhn::from(format!("{:016}", i))
+impl<T: ToString> From<T> for Luhn {
+    fn from(t: T) -> Luhn {
+        Luhn::new(is_valid(&t.to_string()))
     }
 }
